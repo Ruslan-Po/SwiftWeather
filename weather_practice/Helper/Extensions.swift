@@ -1,6 +1,41 @@
 import UIKit
 
 extension UIStackView{
+    static func additionBlock(topTitle: String, bottomAdditionTitle: String)->UIStackView{
+        let currentHour = Calendar.current.component(.hour, from: Date())
+        let topLabel = UILabel()
+        topLabel.text = topTitle
+        topLabel.textAlignment = .center
+        topLabel.font = .systemFont(ofSize: 16, weight: .bold)
+        topLabel.textColor = .white
+        
+        let bottomLabel = UILabel()
+        bottomLabel.shadowColor = UIColor.systemGray2
+        bottomLabel.shadowOffset = CGSize(width: 1, height: 2)
+        bottomLabel.text = bottomAdditionTitle
+        bottomLabel.textAlignment = .center
+        bottomLabel.font = UIFont.regular(size: 45)
+        
+        
+        if (6..<19).contains(currentHour) {
+            bottomLabel.textColor = .gray
+               } else {
+            bottomLabel.textColor = .systemYellow
+               }
+        
+        
+        
+        bottomLabel.tag = 101
+        
+        let titleStack = UIStackView(arrangedSubviews: [topLabel, bottomLabel])
+        titleStack.axis = .vertical
+        titleStack.spacing = 5
+        titleStack.alignment = .center
+        
+        return titleStack
+        
+    }
+    
     static func createBlock(imageName: String, topTitle:String, bottomTitle: String) -> UIStackView{
         
         let ImageView = UIImageView(image:  UIImage(named: imageName))
@@ -30,25 +65,59 @@ extension UIStackView{
         blockStack.alignment = .center
         return blockStack
         }
+    
     func updateBottomTitle(_ newText: String) {
-           // Ищем внутри stack view метку с тегом 101
            if let bottomLabel = self.viewWithTag(101) as? UILabel {
-               // Если нашли, обновляем её текст
+               bottomLabel.text = newText
+           }
+       }
+    
+    func updateBottomAdditionTitle(_ newText: String) {
+           if let bottomLabel = self.viewWithTag(101) as? UILabel {
                bottomLabel.text = newText
            }
        }
 }
 
 extension UILabel{
-    static func createLabel(textAlingment: NSTextAlignment,fintSize: CGFloat, fontWeight: UIFont.Weight,text: String) -> UILabel {
+    static func createLabel(font: UIFont,textAlingment: NSTextAlignment, text: String) -> UILabel {
+        
+    let currentHour = Calendar.current.component(.hour, from: Date())
+      
        let label = UILabel()
        label.textColor = .white
        label.text = text
        label.textAlignment = .left
-       label.font = .systemFont(ofSize: fintSize, weight: .bold)
+        if (6..<19).contains(currentHour) {
+                   label.textColor = .gray
+               } else {
+                   label.textColor = .systemYellow
+               }
+       label.font = font
        label.translatesAutoresizingMaskIntoConstraints = false
        return label
    }
+}
+
+extension UIFont{
+    static func Light (size: CGFloat) -> UIFont {
+        guard let font = UIFont(name: "Lato-Light", size: size) else {
+            fatalError("Не удалось загрузить шрифт Lato-Light.")
+        }
+        return font
+    }
+    static func regular(size:CGFloat)->UIFont{
+        guard let font = UIFont(name: "Lato-Regular",size: size) else{
+            fatalError("Не удалось загрузить шрифт Lato-Regular.")
+        }
+        return font
+    }
+    static func Black(size:CGFloat)->UIFont{
+        guard let font = UIFont(name: "Lato-Black",size: size) else{
+            fatalError("Не удалось загрузить шрифт Lato-Black.")
+        }
+        return font
+    }
 }
 
 
@@ -61,7 +130,6 @@ extension UIButton{
          config.imagePadding = 8 
          config.baseForegroundColor = .white
          let button = UIButton(configuration: config, primaryAction: nil)
-        
          button.addTarget(target, action: selector, for: .touchUpInside)
          button.translatesAutoresizingMaskIntoConstraints = false
          return button
@@ -76,4 +144,20 @@ extension Date{
         let localDateString = formatter.string(from: currentDateTime)
         return localDateString
     }
+    
+    static func getGreetingbyTime() -> String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 6..<12:
+            return "Good Morning"
+        case 12..<18:
+            return "Good Afternoon"
+        case 18..<24:
+            return "Good Evening"
+        default :
+            return "Good Night"
+        }
+    }
 }
+
+
