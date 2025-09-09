@@ -10,20 +10,16 @@ extension UIStackView{
         topLabel.textColor = .white
         
         let bottomLabel = UILabel()
-        bottomLabel.shadowColor = UIColor.systemGray2
-        bottomLabel.shadowOffset = CGSize(width: 1, height: 2)
         bottomLabel.text = bottomAdditionTitle
         bottomLabel.textAlignment = .center
         bottomLabel.font = UIFont.regular(size: 45)
         
         
         if (6..<19).contains(currentHour) {
-            bottomLabel.textColor = .gray
+            bottomLabel.textColor = .darkGray
                } else {
             bottomLabel.textColor = .systemYellow
                }
-        
-        
         
         bottomLabel.tag = 101
         
@@ -89,7 +85,7 @@ extension UILabel{
        label.text = text
        label.textAlignment = .left
         if (6..<19).contains(currentHour) {
-                   label.textColor = .gray
+                   label.textColor = .darkGray
                } else {
                    label.textColor = .systemYellow
                }
@@ -134,6 +130,23 @@ extension UIButton{
          button.translatesAutoresizingMaskIntoConstraints = false
          return button
     }
+    
+    static func createPreviousButton (selector: Selector) -> UIButton {
+        var config = UIButton.Configuration.plain()
+        let currentHour = Calendar.current.component(.hour, from: Date())
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        config.image = UIImage(systemName: "pencil", withConfiguration: symbolConfig)
+        config.imagePadding = 4
+        if (6..<19).contains(currentHour) {
+                   config.baseForegroundColor =  .darkGray
+               } else {
+                   config.baseForegroundColor =  .systemYellow
+               }
+        let button = UIButton(configuration: config, primaryAction: nil)
+        button.addTarget(target, action: selector, for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }
 }
 
 extension Date{
@@ -157,6 +170,20 @@ extension Date{
         default :
             return "Good Night"
         }
+    }
+}
+
+extension UITextField{
+    static func createTextField(placeholder: String) -> UITextField {
+        let textField = UITextField()
+        textField.borderStyle = .none
+        textField.layer.cornerRadius = 15
+        textField.layer.backgroundColor = UIColor.white.cgColor
+        textField.textAlignment = .center
+        textField.font = UIFont.regular(size: 25)
+        textField.placeholder = placeholder
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
     }
 }
 

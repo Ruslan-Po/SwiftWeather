@@ -1,36 +1,43 @@
-import Foundation
+struct WeatherModel: Codable {
+    let coord: GeoModel
+    let name: String
+    let main: MainWeather
+    let weather: [Weather]
+    let sys: SysInfo
+}
 
-
-class WeatherModel : Codable{
-    var coord: GeoModel?
-    var name: String?
-    var main: MainWeather?
-    var weather: [Weather]?
-    var sys: SysInfo?
+struct ForecastResponse: Codable {
+    let list: [ForecastItem]
 }
 
 
-struct MainWeather: Codable{
-    var temp: Double
-    var feelsLike: Double
-    var tempMin: Double
-    var tempMax:  Double
-    var pressure : Int
-    var humidity: Int
+struct ForecastItem: Codable {
+    let dt: Int
+    let main: MainWeather
+    let weather: [Weather]
 }
 
-struct Weather: Codable{
-    var description: String
+
+struct MainWeather: Codable {
+    let temp: Double
+    let feelsLike: Double?
+    let tempMin: Double
+    let tempMax: Double
+    let pressure: Int
+    let humidity: Int?
+}
+
+struct Weather: Codable {
+    let id: Int 
+    let description: String
 }
 
 struct GeoModel: Codable {
-    var lat: Double
-    var lon: Double
+    let lat: Double
+    let lon: Double
 }
 
 struct SysInfo: Codable {
     let sunrise: Int
     let sunset: Int
 }
-
-

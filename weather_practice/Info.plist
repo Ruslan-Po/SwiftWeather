@@ -2,10 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>&quot;We  need to know where are you, to show reelevant weather&quot;</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Lato-ThinItalic.ttf</string>
-		<string>Lato-Thin.ttf.ttf</string>
+		<string>Lato-Thin.ttf</string>
 		<string>Lato-LightItalic.ttf</string>
 		<string>Lato-Light.ttf</string>
 		<string>Lato-Italic.ttf</string>
