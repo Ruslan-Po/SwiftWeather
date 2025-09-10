@@ -45,8 +45,6 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
     }
     
     @objc private func locationButtonTapped() {
-        print("Нажата кнопка геолокации")
-        
         switch locationManager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             locationManager.requestLocation()
@@ -65,11 +63,13 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
         guard let location = locations.last else { return }
         locationManager.stopUpdatingLocation()
         
-        print("Получены координаты: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+        UserDefaults.standard.set(latitude, forKey: "lastLatitude")
+        UserDefaults.standard.set(longitude, forKey: "lastLongitude")
         
         weatherService.fetchCurrentWeather(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude) { [weak self] result in
             guard let self = self else { return }
-            
             switch result {
             case .success(let weatherData):
                 self.getDisplayName(from: location) { displayName in
@@ -94,6 +94,8 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
             return false
         }
         
+        
+        
         weatherService.fetchCurrentWeather(cityName: locationText) { [weak self] result in
             guard let self = self else { return }
             switch result {
@@ -108,6 +110,7 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
     
     func goToSecondScreen(locationName: String, weatherData: WeatherModel) {
         let mainScreen = MainScreenViewController()
+        
         mainScreen.cityName = locationName
         mainScreen.weatherData = weatherData
         navigationController?.pushViewController(mainScreen, animated: true)
@@ -151,7 +154,7 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
         locationTextfield.delegate = self
     }
     
-    @objc private func updateBackground() { // Renamed from UPDbgImage for clarity
+    @objc private func updateBackground() {
         let hour = Calendar.current.component(.hour, from: Date())
         if (6..<19).contains(hour) {
             setupDayBackground()

@@ -1,11 +1,11 @@
 {
   "images" : [
     {
-      "filename" : "night.jpg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "PartlyClouds.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

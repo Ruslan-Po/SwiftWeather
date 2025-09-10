@@ -181,7 +181,11 @@ extension UITextField{
         textField.layer.backgroundColor = UIColor.white.cgColor
         textField.textAlignment = .center
         textField.font = UIFont.regular(size: 25)
-        textField.placeholder = placeholder
+        textField.textColor = .lightGray
+        textField.attributedPlaceholder = NSAttributedString(
+                   string: placeholder,
+                   attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray]
+               )
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }
