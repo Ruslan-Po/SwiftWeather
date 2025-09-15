@@ -98,19 +98,16 @@ extension UILabel{
 extension UIFont{
     static func Light (size: CGFloat) -> UIFont {
         guard let font = UIFont(name: "Lato-Light", size: size) else {
-            fatalError("Не удалось загрузить шрифт Lato-Light.")
         }
         return font
     }
     static func regular(size:CGFloat)->UIFont{
         guard let font = UIFont(name: "Lato-Regular",size: size) else{
-            fatalError("Не удалось загрузить шрифт Lato-Regular.")
         }
         return font
     }
     static func Black(size:CGFloat)->UIFont{
         guard let font = UIFont(name: "Lato-Black",size: size) else{
-            fatalError("Не удалось загрузить шрифт Lato-Black.")
         }
         return font
     }

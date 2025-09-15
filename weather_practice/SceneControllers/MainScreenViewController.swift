@@ -3,137 +3,201 @@ import CoreLocation
 
 class MainScreenViewController: UIViewController {
     
-    
-    var greeting: String = Date.getGreetingbyTime()
-    
     var weatherData: WeatherModel?
     var latitude: Double?
     var longitude: Double?
+    var cityName: String?
+
     
-    private let backgroundImageView = UIImageView()
+    private let greetingMessageLabel = UILabel.createLabel(font: .systemFont(ofSize: 25, weight: .regular), textAlingment: .left, text: Date.getGreetingbyTime())
+    private let locationNameLabel = UILabel.createLabel(font: .systemFont(ofSize: 20, weight: .light), textAlingment: .left, text: "Loading...")
+    private let currentTemperatureLabel = UILabel.createLabel(font: .systemFont(ofSize: 50, weight: .black), textAlingment: .center, text: "--°C")
+    private let weatherDescriptionLabel = UILabel.createLabel(font: .systemFont(ofSize: 20, weight: .light), textAlingment: .center, text: "...")
+    private let currentDateTimeLabel = UILabel.createLabel(font: .systemFont(ofSize: 15, weight: .regular), textAlingment: .center, text: Date.dateFormatter())
     
-    var cityName: String = "Limassol"
+    private let sunriseBlock = UIStackView.createBlock(imageName: "sunrise", topTitle: "Sunrise", bottomTitle: "--:--")
+    private let sunsetBlock = UIStackView.createBlock(imageName: "sunset", topTitle: "Sunset", bottomTitle: "--:--")
+    private let humidity = UIStackView.additionBlock(topTitle: "Humidity", bottomAdditionTitle: "--")
+    private let feelLike = UIStackView.additionBlock(topTitle: "Feels Like", bottomAdditionTitle: "--")
     
-    var weatherCondition: Int?
-    var currentDateTime = Date.dateFormatter()
+    private lazy var nextDaysButton = UIButton.createNextButton(selector: #selector (goToWeeklyScreen))
+    private lazy var backButton = UIButton.createPreviousButton(selector: #selector(backFunc))
     
-    lazy var locationNameLabel = UILabel.createLabel(font: .systemFont(ofSize: 20, weight: .light), textAlingment: .left, text: cityName)
-    lazy var greetingMessageLabel = UILabel.createLabel(font: .systemFont(ofSize: 25, weight: .regular), textAlingment: .left, text: greeting)
-    lazy var currentTemperatureLabel = UILabel.createLabel(font: .systemFont(ofSize: 50, weight: .black), textAlingment: .center,  text: "21°C")
-    lazy var weatherDescriptionLabel = UILabel.createLabel(font: .systemFont(ofSize: 20, weight: .light), textAlingment: .center, text: "SUNNY")
-    lazy var currentDateTimeLabel = UILabel.createLabel(font: .systemFont(ofSize: 15, weight: .regular), textAlingment: .center, text: currentDateTime)
-    lazy var sunriseBlock = UIStackView.createBlock(imageName: "sunrise", topTitle: "Sunrise", bottomTitle: "9:21")
-    lazy var sunsetBlock = UIStackView.createBlock(imageName: "sunset", topTitle: "Sunset", bottomTitle: "20:11")
-    lazy var humidity = UIStackView.additionBlock(topTitle: "Humidity", bottomAdditionTitle: "21")
-    lazy var feelLike = UIStackView.additionBlock(topTitle: "Feels Like", bottomAdditionTitle: "21")
-    lazy var nextDaysButton = UIButton.createNextButton(selector: #selector (goToWeeklyScreen))
-    lazy var backButton = UIButton.createPreviousButton(selector: #selector(backFunc))
+    private lazy var sunriseSunsetStackView = UIStackView(arrangedSubviews: [sunriseBlock, sunsetBlock])
+    private lazy var feelsLikeHumidityStackView = UIStackView(arrangedSubviews: [humidity, feelLike])
+    private lazy var currentWeatherStackView = UIStackView(arrangedSubviews: [currentTemperatureLabel, weatherDescriptionLabel, currentDateTimeLabel])
     
-    lazy var sunriseSunsetStackView: UIStackView = {
-        let ssSV = UIStackView(arrangedSubviews: [sunriseBlock, sunsetBlock])
-        ssSV.axis = .horizontal
-        ssSV.spacing = 50
-        ssSV.translatesAutoresizingMaskIntoConstraints = false
-        return ssSV
-    }()
-    
-    lazy var feelsLikeHumidityStackView: UIStackView = {
-        let fshSV = UIStackView(arrangedSubviews: [humidity, feelLike])
-        fshSV.axis = .horizontal
-        fshSV.spacing = 50
-        fshSV.translatesAutoresizingMaskIntoConstraints = false
-        return fshSV
-    }()
-    
-    lazy var currentWeatherStackView: UIStackView = {
-        let cwSV = UIStackView(arrangedSubviews: [currentTemperatureLabel, weatherDescriptionLabel,currentDateTimeLabel])
-        cwSV.axis = .vertical
-        cwSV.alignment = .center
-        cwSV.spacing = 5
-        cwSV.distribution = .fillProportionally
-        cwSV.translatesAutoresizingMaskIntoConstraints = false
-        return cwSV
-    }()
-    
-    lazy var currentWeatherImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "testImage"))
+    private let currentWeatherImageView: UIImageView = {
+        let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
-    enum WeatherIconPath: String {
-          case thunderstorm = "Thunderstorm"
-          case drizzle = "Drizzle"
-          case rain = "Rain"
-          case snow = "Snow"
-          case fog = "Fog"
-          case clear = "ClearSky"
-          case clouds = "Clouds"
-          case unknown = "PartlyClouds"
-      }
-
-      func getWeatherIconByCode(from weatherDescription: Int) -> WeatherIconPath {
-          switch weatherDescription {
-          case 200...232:
-              return .thunderstorm
-          case 300...321:
-              return .drizzle
-          case 500...531:
-              return .rain
-          case 600...622:
-              return .snow
-          case 701...781:
-              return .fog
-          case 800:
-              return .clear
-          case 801...804:
-              return .clouds
-          default:
-              return .unknown
-          }
-      }
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.hidesBackButton = true
-        if let data = weatherData {
-            locationNameLabel.text = cityName
-            updateUI(with: data)
-        } else if let lat = latitude, let lon = longitude {
-            print("Переданы координаты. Загружаем погоду...")
-            getWeatherByCoords(latitude: lat, longitude: lon)
-        } else {
-            print("Данные не переданы. Загружаем погоду по названию города по умолчанию...")
-            getWeatherByName()
-        }
-        
-        UPDbgImage()
+        setupController()
         setupUI()
+        fetchWeatherData()
+    }
+    
+    private func fetchWeatherData() {
+        if let data = weatherData {
+            updateUI(with: data)
+            saveCoordinates(from: data)
+        } else if let lat = latitude, let lon = longitude {
+            getWeatherByCoords(latitude: lat, longitude: lon)
+        } else if let name = cityName {
+            getWeatherByName(name: name)
+        } else {
+            locationNameLabel.text = "Error"
+            print("View controller has been opened without coordinates")
+        }
+    }
+    
+    private func getWeatherByName(name: String) {
+        WeatherService().fetchCurrentWeather(cityName: name) { [weak self] result in
+            self?.handleWeatherResult(result)
+        }
+    }
+    
+    private func getWeatherByCoords(latitude: Double, longitude: Double) {
+        WeatherService().fetchCurrentWeather(latitude: latitude, longitude: longitude) { [weak self] result in
+            self?.handleWeatherResult(result)
+        }
     }
 
+    private func handleWeatherResult(_ result: Result<WeatherModel, NetworkError>) {
+        DispatchQueue.main.async {
+            switch result {
+            case .success(let currentWeather):
+                self.updateUI(with: currentWeather)
+                self.saveCoordinates(from: currentWeather)
+            case .failure(let error):
+                print("Loading Error \(error)")
+                self.locationNameLabel.text = "Failed to load"
+            }
+        }
+    }
     
-    private func setupUI() {
+    private func saveCoordinates(from data: WeatherModel) {
+        let lat = data.coord.lat
+        let lon = data.coord.lon
+        
+        UserDefaults.standard.set(lat, forKey: "lastLatitude")
+        UserDefaults.standard.set(lon, forKey: "lastLongitude")
+    }
+
+    private func updateUI(with data: WeatherModel) {
+        self.weatherData = data
+        self.cityName = data.name
+        self.latitude = data.coord.lat
+        self.longitude = data.coord.lon
+        
+        updateBackground()
+        
+        locationNameLabel.text = data.name
+        currentTemperatureLabel.text = "\(Int(data.main.temp - 273.15))°C"
+        weatherDescriptionLabel.text = data.weather.first?.description.uppercased()
+        
+        let feelsLikeTemp = data.main.feelsLike ?? data.main.temp
+        feelLike.updateBottomTitle("\(Int(feelsLikeTemp - 273.15))°C")
+        humidity.updateBottomTitle("\(data.main.humidity ?? 0)%")
+        
+        sunriseBlock.updateBottomTitle(formatDateTime(from: data.sys.sunrise))
+        sunsetBlock.updateBottomTitle(formatDateTime(from: data.sys.sunset))
+        
+        if let weatherCode = data.weather.first?.id {
+            currentWeatherImageView.image = UIImage(named: getWeatherIconName(from: weatherCode))
+        }
+    }
+    
+    @objc private func goToWeeklyScreen() {
+        guard let cityName = self.cityName else { return }
+        let weeklyScreen = WeeklyScreenController()
+        weeklyScreen.cityNameForecast = cityName
+        weeklyScreen.latitude = self.latitude
+        weeklyScreen.longitude = self.longitude
+        navigationController?.pushViewController(weeklyScreen, animated: true)
+    }
+    
+    @objc private func backFunc() {
+        UserDefaults.standard.removeObject(forKey: "lastLatitude")
+        UserDefaults.standard.removeObject(forKey: "lastLongitude")
+        
+        guard let window = view.window else { return }
+        let firstScreenVC = FirstScreenViewController()
+        let rootNC = UINavigationController(rootViewController: firstScreenVC)
+        
+        window.rootViewController = rootNC
+        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
+    }
+    
+    private func formatDateTime(from unix: Int) -> String {
+        let date = Date(timeIntervalSince1970: TimeInterval(unix))
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+    
+    private func getWeatherIconName(from code: Int) -> String {
+        switch code {
+        case 200...232: return "Thunderstorm"
+        case 300...321: return "Drizzle"
+        case 500...531: return "Rain"
+        case 600...622: return "Snow"
+        case 701...781: return "Fog"
+        case 800:       return "ClearSky"
+        case 801...804: return "Clouds"
+        default:        return "PartlyClouds"
+        }
+    }
+    
+    private func updateBackground() {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let isDay = (6..<19).contains(hour)
+        
+        let topColor = isDay ? UIColor(red: 102/255.0, green: 178/255.0, blue: 255/255.0, alpha: 1.0).cgColor : UIColor(red: 0.1, green: 0.2, blue: 0.4, alpha: 1.0).cgColor
+        let bottomColor = isDay ? UIColor(red: 178/255.0, green: 216/255.0, blue: 255/255.0, alpha: 1.0).cgColor : UIColor(red: 0.3, green: 0.5, blue: 0.7, alpha: 1.0).cgColor
+        
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [topColor, bottomColor]
+        gradientLayer.locations = [0.0, 1.0]
+        gradientLayer.frame = self.view.bounds
+        
+        self.view.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+        self.view.layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
+    private func setupController() {
+        navigationItem.hidesBackButton = true
         view.backgroundColor = .darkGray
-        view.addSubview(locationNameLabel)
-        view.addSubview(backButton)
-        view.addSubview(greetingMessageLabel)
-        view.addSubview(currentWeatherImageView)
-        view.addSubview(currentWeatherStackView)
-        view.addSubview(sunriseSunsetStackView)
-        view.addSubview(feelsLikeHumidityStackView)
-        view.addSubview(nextDaysButton)
+    }
+
+    private func setupUI() {
+        sunriseSunsetStackView.axis = .horizontal
+        sunriseSunsetStackView.spacing = 50
+        feelsLikeHumidityStackView.axis = .horizontal
+        feelsLikeHumidityStackView.spacing = 50
+        currentWeatherStackView.axis = .vertical
+        currentWeatherStackView.alignment = .center
+        currentWeatherStackView.spacing = 5
+        
+        let allSubviews = [locationNameLabel, backButton, greetingMessageLabel, currentWeatherImageView, currentWeatherStackView, sunriseSunsetStackView, feelsLikeHumidityStackView, nextDaysButton]
+        allSubviews.forEach {
+            view.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
         
         NSLayoutConstraint.activate([
             locationNameLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
             locationNameLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             
             backButton.leadingAnchor.constraint(equalTo: locationNameLabel.trailingAnchor, constant: 20),
-            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0.5),
+            backButton.centerYAnchor.constraint(equalTo: locationNameLabel.centerYAnchor),
             
-            greetingMessageLabel.topAnchor.constraint(equalTo: locationNameLabel.bottomAnchor, constant:5),
+            greetingMessageLabel.topAnchor.constraint(equalTo: locationNameLabel.bottomAnchor, constant: 5),
             greetingMessageLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             
             currentWeatherImageView.topAnchor.constraint(equalTo: greetingMessageLabel.bottomAnchor, constant: 10),
@@ -153,128 +217,5 @@ class MainScreenViewController: UIViewController {
             feelsLikeHumidityStackView.topAnchor.constraint(equalTo: sunriseSunsetStackView.bottomAnchor, constant: 15),
             feelsLikeHumidityStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
-    }
-    
-    
-    private func getWeatherByName() {
-        let weatherService = WeatherService()
-        weatherService.fetchCurrentWeather(cityName: cityName) { [weak self] result in
-            self?.handleWeatherResult(result)
-        }
-    }
-    
-    private func getWeatherByCoords(latitude: Double, longitude: Double) {
-        let weatherService = WeatherService()
-        let location = CLLocation(latitude: latitude, longitude: longitude)
-        let geocoder = CLGeocoder()
-        geocoder.reverseGeocodeLocation(location, preferredLocale: nil) { (placemarks, error) in
-            if let placemark = placemarks?.first {
-                self.cityName = placemark.locality ?? placemark.administrativeArea ?? "Saved Location"
-                self.locationNameLabel.text = self.cityName
-            }
-        }
-        weatherService.fetchCurrentWeather(latitude: latitude, longitude: longitude) { [weak self] result in
-            self?.handleWeatherResult(result)
-        }
-    }
-    
-    private func updateConditionIcon(with code: Int) {
-        let iconEnum = getWeatherIconByCode(from: code)
-        let iconName = iconEnum.rawValue
-        currentWeatherImageView.image = UIImage(named: iconName)
-        print("Иконка погоды обновлена на: \(iconName)")
-    }
-    
-    private func handleWeatherResult(_ result: Result<WeatherModel, NetworkError>) {
-        switch result {
-        case .success(let currentWeather):
-            updateUI(with: currentWeather)
-        case .failure(let error):
-            print("Ошибка при загрузке текущей погоды: \(error)")
-            // Здесь можно показать пользователю алерт
-        }
-    }
-
-    private func updateUI(with data: WeatherModel) {
-        let celcius = Int(data.main.temp - 273.15)
-        let feelsLikeTemp = data.main.feelsLike ?? data.main.temp
-        let feelsLikeCelcius = Int(feelsLikeTemp - 273.15)
-        let humidityValue = data.main.humidity ?? 0
-        
-        if let weathercode = data.weather.first?.id {
-            self.weatherCondition = weathercode
-            self.updateConditionIcon(with: weathercode)
-        }
-        
-        self.locationNameLabel.text = self.cityName // Обновляем имя города, если оно пришло из координат
-        self.currentTemperatureLabel.text = "\(celcius)°C"
-        self.weatherDescriptionLabel.text = data.weather.first?.description.uppercased()
-        self.feelLike.updateBottomTitle("\(feelsLikeCelcius)°C")
-        self.humidity.updateBottomTitle("\(humidityValue)%")
-        
-        let sunriseTime = self.formateDateTime(from: data.sys.sunrise)
-        self.sunriseBlock.updateBottomTitle(sunriseTime)
-        
-        let sunsetTime = self.formateDateTime(from: data.sys.sunset)
-        self.sunsetBlock.updateBottomTitle(sunsetTime)
-    }
-    
-    func formateDateTime(from unix: Int )->String{
-        let date = Date(timeIntervalSince1970:  TimeInterval(unix))
-        let dateFormater = DateFormatter()
-        dateFormater.dateFormat = "HH:mm"
-        return dateFormater.string(from: date)
-    }
-
-    @objc func goToWeeklyScreen () {
-        let weeklyScreen = WeeklyScreenController()
-        navigationController?.pushViewController(weeklyScreen, animated: true)
-    }
-    
-    @objc private func backFunc(){
-        UserDefaults.standard.removeObject(forKey: "lastLatitude")
-          UserDefaults.standard.removeObject(forKey: "lastLongitude")
-          print("Сохраненные координаты удалены.")
-          
-          guard let window = view.window else { return }
-
-          let firstScreenVC = FirstScreenViewController()
-          let rootNC = UINavigationController(rootViewController: firstScreenVC)
-
-          window.rootViewController = rootNC
-          UIView.transition(with: window,
-                            duration: 0.3,
-                            options: .transitionCrossDissolve,
-                            animations: nil,
-                            completion: nil)
-    }
-    
-    @objc private func UPDbgImage(){
-        let hour = Calendar.current.component(.hour, from: Date())
-        if (6..<19).contains(hour){
-            setupDayBackground()
-        } else {
-            setupNightBackground()
-        }
-    }
-    
-    private func setupNightBackground() {
-        let gradientLayer = CAGradientLayer()
-        let topColor = UIColor(red: 0.1, green: 0.2, blue: 0.4, alpha: 1.0).cgColor
-        let bottomColor = UIColor(red: 0.3, green: 0.5, blue: 0.7, alpha: 1.0).cgColor
-        gradientLayer.colors = [topColor, bottomColor]
-        gradientLayer.locations = [0.0, 1.0]
-        gradientLayer.frame = self.view.bounds
-        self.view.layer.insertSublayer(gradientLayer, at: 0)
-    }
-    
-    private func setupDayBackground() {
-        let gradientLayer = CAGradientLayer()
-        let topColor = UIColor(red: 102/255.0, green: 178/255.0, blue: 255/255.0, alpha: 1.0).cgColor
-        let bottomColor = UIColor(red: 178/255.0, green: 216/255.0, blue: 255/255.0, alpha: 1.0).cgColor
-        gradientLayer.colors = [topColor, bottomColor]
-        gradientLayer.locations = [0.0, 1.0]
-        gradientLayer.frame = self.view.bounds
-        self.view.layer.insertSublayer(gradientLayer, at: 0)
     }
 }

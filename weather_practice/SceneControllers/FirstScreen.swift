@@ -76,21 +76,21 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
                     self.goToSecondScreen(locationName: displayName, weatherData: weatherData)
                 }
             case .failure(let error):
-                print("Ошибка загрузки погоды по координатам: \(error)")
-                self.showErrorAlert(message: "Не удалось загрузить погоду для текущей геопозиции.")
+                print("Error loading weather by coordinates: \(error)")
+                self.showErrorAlert(message: "Failed to load weather for the current location.")
             }
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Ошибка получения геолокации: \(error.localizedDescription)")
-        showErrorAlert(message: "Не удалось определить вашу геолокацию. Проверьте настройки и попробуйте позже.")
+        print("Geolocation error \(error.localizedDescription)")
+        showErrorAlert(message: "Could not determine your location. Please check your settings and try again later.")
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         guard let locationText = textField.text, !locationText.trimmingCharacters(in: .whitespaces).isEmpty else {
-            print("Пустой ввод")
+            print("Empty input")
             return false
         }
         
@@ -102,7 +102,7 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
             case .success(let weatherData):
                 self.goToSecondScreen(locationName: locationText, weatherData: weatherData)
             case .failure:
-                self.showErrorAlert(message: "Не удалось найти погоду для города '\(locationText)'.")
+                self.showErrorAlert(message: "Could not find weather for the city'\(locationText)'.")
             }
         }
         return true
@@ -121,10 +121,10 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
         let locale = Locale(identifier: "en_US")
         geocoder.reverseGeocodeLocation(location, preferredLocale: locale) { (placemarks, error) in
             if let placemark = placemarks?.first {
-                let name = placemark.locality ?? placemark.administrativeArea ?? "Текущая локация"
+                let name = placemark.locality ?? placemark.administrativeArea ?? "Current Location"
                 completion(name)
             } else {
-                completion("Текущая локация")
+                completion("Current Location")
             }
         }
     }
@@ -138,14 +138,14 @@ class FirstScreenViewController: UIViewController, UITextFieldDelegate, CLLocati
     }
     
     private func showLocationDeniedAlert() {
-        let message = "Чтобы определять город автоматически, разрешите доступ к геолокации в настройках устройства."
-        let alert = UIAlertController(title: "Доступ запрещен", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Перейти в настройки", style: .default, handler: { _ in
+        let message = "To detect the city automatically, please allow access to your location in the device settings."
+        let alert = UIAlertController(title: "Access denied", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Go to settings", style: .default, handler: { _ in
             if let url = URL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(url)
             }
         }))
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alert, animated: true)
     }
     

@@ -21,9 +21,16 @@ class WeatherService {
             "lon": String(longitude)
         ], completion: completion)
     }
-
-    func fetchForecast(cityName: String, completion: @escaping (Result<ForecastResponse, NetworkError>) -> Void) {
-        performRequest(endpoint: "forecast", parameters: ["q": cityName], completion: completion)
+//
+//    func fetchForecast(cityName: String, completion: @escaping (Result<ForecastResponse, NetworkError>) -> Void) {
+//        performRequest(endpoint: "forecast", parameters: ["q": cityName], completion: completion)
+//    }
+    
+    func fetchForecast(latitude: Double, longitude: Double, completion: @escaping (Result<ForecastResponse, NetworkError>) -> Void) {
+        performRequest(endpoint: "forecast", parameters: [
+            "lat": String(latitude),
+            "lon": String(longitude)
+        ], completion: completion)
     }
 
     private func performRequest<T: Decodable>(endpoint: String, parameters: [String: String], completion: @escaping (Result<T, NetworkError>) -> Void) {
